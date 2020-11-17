@@ -12,7 +12,6 @@ class ViewController: UITableViewController {
     @IBOutlet var filesTableView: UITableView!
     
     let fileManager = FileManagerService()
-    let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
     var filesData = [File?]()
     var directoryName = "Documents"
     
@@ -79,7 +78,7 @@ class ViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "FilesCell", for: indexPath)
-        cell.imageView?.image = filesData[indexPath.row]!.isDirectory ? UIImage(named: "directory") : UIImage(named: "file")
+        cell.imageView?.image = filesData[indexPath.row]?.isDirectory ?? false ? UIImage(named: "directory") : UIImage(named: "file")
         cell.textLabel?.text = filesData[indexPath.row]?.name
         cell.accessoryType = .disclosureIndicator
         return cell
@@ -90,18 +89,18 @@ class ViewController: UITableViewController {
         if file.isDirectory {
             guard let destinationController = self.storyboard?.instantiateViewController(withIdentifier: "mainVC") as? ViewController else { return }
             destinationController.directoryName = file.name
-            self.navigationController!.pushViewController(destinationController, animated: true)
+            self.navigationController?.pushViewController(destinationController, animated: true)
         } else {
             guard let destinationController = self.storyboard?.instantiateViewController(withIdentifier: "fileDetailsVC") as? FileDetailsViewController else { return }
             destinationController.fileText = fileManager.readFile(at: self.directoryName, withName: file.name)
-            self.navigationController!.pushViewController(destinationController, animated: true)
+            self.navigationController?.pushViewController(destinationController, animated: true)
         }
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete", handler: { action,view,completion in
-            self.fileManager.deleteFile(at: self.filesData[indexPath.row]!.path)
+            self.fileManager.deleteFile(at: self.filesData[indexPath.row]?.path)
             self.filesData.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .automatic)
             completion(true)

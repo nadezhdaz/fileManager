@@ -30,8 +30,11 @@ class FileManagerService {
             directoryURL = documentsDirectory
         }
         else {
-            let directoryPath = documentsDirectory!.path + "/" + directory
-            directoryURL = URL(fileURLWithPath: directoryPath)
+            if let documents = documentsDirectory {
+                let directoryPath = documents.path + "/" + directory
+                directoryURL = URL(fileURLWithPath: directoryPath)
+            }
+            
         }
         
         if let directory = directoryURL, let directoryContents = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles) {
@@ -70,7 +73,9 @@ class FileManagerService {
     
     func readFile(at directory: String, withName name: String) -> String? {
         guard let documents = documentsDirectory else { return nil }
-        let filePath = documents.path + "/" + directory + "/" + name
+        let directoryName = directory == "Documents" ? "" : directory
+        let filePath = documents.path + "/" + directoryName + "/" + name
+        //let filePath = documents.path + "/" + directory + "/" + name
         
         guard let fileContent = FileManager.default.contents(atPath: filePath),
             let fileContentEncoded = String(bytes: fileContent, encoding: .utf8) else {
@@ -80,7 +85,8 @@ class FileManagerService {
         return fileContentEncoded
     }
     
-    func deleteFile(at path: String) {
+    func deleteFile(at path: String?) {
+        guard let path = path else { return }
         do {
             try FileManager.default.removeItem(atPath: path)
         } catch let error as NSError {
